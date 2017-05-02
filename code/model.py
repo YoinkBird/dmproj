@@ -167,3 +167,9 @@ print("-I-: End of File")
 # 
 # automatically discarding low-importance features
 # http://scikit-learn.org/stable/modules/feature_selection.html#feature-selection-using-selectfrommodel
+
+# Interpreting Decision Tree in context of feature importances
+# https://datascience.stackexchange.com/questions/16693/interpreting-decision-tree-in-context-of-feature-importances
+
+# further reading - Random Forests
+# http://www.stat.berkeley.edu/~breiman/RandomForests/cc_home.htm
