@@ -16,7 +16,11 @@ import re
 # import the "crash" data
 datafile = "../data/txdot_2010_2017.csv"
 
+# get clean data
 (data,featdef) = preprocess_data(datafile)
+
+# add binary categories
+(data,featdef) = preproc_add_bin_categories(data, featdef, verbose=1)
 
 
 print(data.head())

@@ -68,7 +68,11 @@ def preprocess_data(datafile, source='txdot', verbose=0):
     # GPS coordinates were initially read in as string because missing entries were called 'No Data'
     data['latitude'] = data['latitude'].astype(float)
     data['longitude'] = data['longitude'].astype(float)
-    # process categorical data
+    return(data,featdef)
+
+
+# add categorical data
+def preproc_add_bin_categories(data, featdef, verbose=0):
     if(1):
         # factorizable data
         # convert 'Wet' 'Dry' to '1' '0'
@@ -313,8 +317,12 @@ if(__name__ == '__main__'):
     # get data
     (data,featdef) = preprocess_data(datafile, verbose=1)
 
+    # add binary categories
+    (data,featdef) = preproc_add_bin_categories(data, featdef, verbose=1)
+
     # impute speed_limit mph
     if(test_impute_mph):
+        print("########################################")
         totalmissing   = data[data['speed_limit'].isnull()].shape[0]
         missingpercent = totalmissing / data.shape[0]
         print("pre : total missing speed limit data:\n %s (%s of 1)" % (totalmissing, missingpercent))
@@ -324,11 +332,13 @@ if(__name__ == '__main__'):
         missingpercent = totalmissing / data.shape[0]
         print("post: total missing speed limit data:\n %s (%s of 1)" % (totalmissing, missingpercent))
         print(data.speed_limit.unique())
+        print("########################################")
     print("-I-: End of Pre-Processing")
     print("-I-: Brief data exploration")
 
 
     if(show_data_vis):
+        print("########################################")
         print(data.head())
         print(data.info())
         if(1):
@@ -338,8 +348,10 @@ if(__name__ == '__main__'):
           plt.show()
         else:
           print("-I-: Skipping...")
+        print("########################################")
 
     if(test_dummies):
+        print("########################################")
         # list of vars which become dummie'd
         dummies_needed_list = list(featdef[featdef.dummies == 1].index)
 
@@ -360,6 +372,7 @@ if(__name__ == '__main__'):
         if(0):
             sns.pairplot(data, vars=pairplot_var_list)
             plt.show()
+        print("########################################")
 
     print("-I-: End of File")
 
