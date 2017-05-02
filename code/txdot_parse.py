@@ -233,9 +233,9 @@ approach:
 '''
 profiling:
     IPython CPU timings (estimated):
-      User   :      23.98 s.
-      System :       0.03 s.
-    Wall time:      24.99 s.
+      User   :       4.62 s.
+      System :       0.28 s.
+    Wall time:       5.53 s.
 '''
 # assume already processed
 def impute_mph(data, verbose=0):
@@ -339,6 +339,22 @@ if(__name__ == '__main__'):
     # impute speed_limit mph
     if(test_impute_mph):
         print("########################################")
+        # 35.0    638
+        # 30.0    549
+        # 45.0    187
+        # 40.0    184
+        # 55.0     53
+        # 25.0     48
+        # 50.0     41
+        # 60.0     18
+        # 65.0      8
+        # 10.0      8
+        # 5.0       6
+        # 20.0      5
+        # 15.0      5
+        # 32.0      1
+        # 36.0      1
+        print(data.speed_limit.value_counts())
         totalmissing   = data[data['speed_limit'].isnull()].shape[0]
         missingpercent = totalmissing / data.shape[0]
         print("pre : total missing speed limit data:\n %s (%s of 1)" % (totalmissing, missingpercent))
@@ -348,6 +364,8 @@ if(__name__ == '__main__'):
         missingpercent = totalmissing / data.shape[0]
         print("post: total missing speed limit data:\n %s (%s of 1)" % (totalmissing, missingpercent))
         print(data.speed_limit.unique())
+        print(data.speed_limit.value_counts())
+        print(data.info())
         print("########################################")
     print("-I-: End of Pre-Processing")
     print("-I-: Brief data exploration")
