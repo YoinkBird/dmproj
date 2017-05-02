@@ -64,6 +64,7 @@ def preprocess_data(datafile, source='txdot', verbose=0):
         data.replace(to_replace='No Data', value=np.nan, inplace=True)
         data.replace(to_replace='Not Applicable', value=np.nan, inplace=True)
         data.replace(to_replace='UNKNOWN', value=np.nan, inplace=True) # intersecting_street_name
+        data['speed_limit'].replace(0,-1,inplace=True) # speed_limit -  standardise on '-1'
     # GPS coordinates were initially read in as string because missing entries were called 'No Data'
     data['latitude'] = data['latitude'].astype(float)
     data['longitude'] = data['longitude'].astype(float)
