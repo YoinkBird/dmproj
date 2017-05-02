@@ -16,7 +16,8 @@ if(__name__ == '__main__'):
     # import the "crash" data
     datafile = "../data/txdot_2010_2017.csv"
 
-def preprocess_data(datafile, source='txdot', verbose=0):
+# ensure all data is machine-readable
+def clean_data(datafile, source='txdot', verbose=0):
     data = pd.read_csv(datafile,header=7)
     # feature definitions and properties
     featdef = get_feature_defs()
@@ -43,7 +44,24 @@ def preprocess_data(datafile, source='txdot', verbose=0):
     data = process_data_punctuation(data)
     # special cases
     data.columns = data.columns.str.replace('crash_i_d', 'crash_id')
-    # </crash_time>
+    # convert to 'nan'
+    if(1):
+        # replace ['No Data','Not Applicable'] with NaN
+        data.replace(to_replace='No Data', value=np.nan, inplace=True)
+        data.replace(to_replace='Not Applicable', value=np.nan, inplace=True)
+        data.replace(to_replace='UNKNOWN', value=np.nan, inplace=True) # intersecting_street_name
+        data['speed_limit'].replace(0,np.nan,inplace=True) # speed_limit - np.nan is faster
+    # GPS coordinates were initially read in as string because missing entries were called 'No Data'
+    data['latitude'] = data['latitude'].astype(float)
+    data['longitude'] = data['longitude'].astype(float)
+    return(data,featdef)
+
+# catch-all pre-processing function
+# e.g. to only have to call one function once from within the model
+def preprocess_data(datafile, source='txdot', verbose=0):
+    # first clean the data
+    (data,featdef) = clean_data(datafile, source='txdot', verbose=0)
+    # <crash_time>
     # convert integer crashtime to datetime with year
     data['crash_datetime'] = create_datetime_series(data)
     featdef = add_feature(featdef, 'crash_datetime', {'type':'datetime','regtype':'categorical'})
@@ -58,18 +76,7 @@ def preprocess_data(datafile, source='txdot', verbose=0):
     data['crash_time_30m'] = data.crash_datetime.apply(time_round30min)
     featdef = add_feature(featdef, 'crash_time_30m', {'type':'int','regtype':'categorical','origin':'crash_datetime'})
     # </crash_time>
-    # convert to 'nan'
-    if(1):
-        # replace ['No Data','Not Applicable'] with NaN
-        data.replace(to_replace='No Data', value=np.nan, inplace=True)
-        data.replace(to_replace='Not Applicable', value=np.nan, inplace=True)
-        data.replace(to_replace='UNKNOWN', value=np.nan, inplace=True) # intersecting_street_name
-        data['speed_limit'].replace(0,np.nan,inplace=True) # speed_limit - np.nan is faster
-    # GPS coordinates were initially read in as string because missing entries were called 'No Data'
-    data['latitude'] = data['latitude'].astype(float)
-    data['longitude'] = data['longitude'].astype(float)
     return(data,featdef)
-
 
 # add categorical data
 def preproc_add_bin_categories(data, featdef, verbose=0):
