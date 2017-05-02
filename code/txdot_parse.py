@@ -51,6 +51,7 @@ def clean_data(datafile, source='txdot', verbose=0):
         data.replace(to_replace='Not Applicable', value=np.nan, inplace=True)
         data.replace(to_replace='UNKNOWN', value=np.nan, inplace=True) # intersecting_street_name
         data['speed_limit'].replace(0,np.nan,inplace=True) # speed_limit - np.nan is faster
+        data['speed_limit'].replace(-1,np.nan,inplace=True) # speed_limit - np.nan is faster
     # GPS coordinates were initially read in as string because missing entries were called 'No Data'
     data['latitude'] = data['latitude'].astype(float)
     data['longitude'] = data['longitude'].astype(float)
@@ -239,6 +240,8 @@ profiling:
 # assume already processed
 def impute_mph(data, verbose=0):
     verbose3 = 0
+    if(verbose > 2):
+      verbose3 = 1
     if(verbose):
         print("-I-: using verbosity %d" % (verbose))
     colgrps = {
@@ -283,7 +286,11 @@ def impute_mph(data, verbose=0):
       # sometimes the updates to 'dftmp' happen to 'data', something about slices vs copies, blah
       # A value is trying to be set on a copy of a slice from a DataFrame
       # See the caveats in the documentation: http://pandas.pydata.org/pandas-docs/stable/indexing.html#indexing-view-versus-copy
-      dftmp = data[(data['street_name'] == ser['street_name']) & (data['intersecting_street_name'] == ser['intersecting_street_name'])]
+      # disable with: (not a good idea!)
+      #pd.set_option('mode.chained_assignment',None)
+      #pd.set_option('mode.chained_assignment','raise')
+      # 
+      dftmp = data[(data['street_name'] == ser['street_name']) & (data['intersecting_street_name'] == ser['intersecting_street_name'])].copy()
       if(verbose3):
           print("before:")
           print(dftmp['speed_limit'].unique())
@@ -321,9 +328,11 @@ if(__name__ == '__main__'):
     show_data_vis = 1
     show_data_vis_model = 1
 
+    print("-I-: load file")
     # get data
     (data,featdef) = preprocess_data(datafile, verbose=1)
 
+    print("-I-: binary categories")
     # add binary categories
     (data,featdef) = preproc_add_bin_categories(data, featdef, verbose=1)
 
