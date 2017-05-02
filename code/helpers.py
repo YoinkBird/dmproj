@@ -113,9 +113,9 @@ def impute_mph(data, verbose=0):
       }
     # impute missing speed limits
 
-    # standardise on '-1' for missing limit
-    data['speed_limit'].replace(0,-1,inplace=True)
-    data['speed_limit'] = data['speed_limit'].replace(0,-1)
+#    # standardise on '-1' for missing limit
+#    data['speed_limit'].replace(0,-1,inplace=True)
+#    data['speed_limit'] = data['speed_limit'].replace(0,-1)
     # handled already in txdot_parse
     data.intersecting_street_name.replace('UNKNOWN',np.nan,inplace=True)
 
