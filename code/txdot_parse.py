@@ -213,39 +213,48 @@ def preprocess_data(datafile, source='txdot', verbose=0):
 if(__name__ == '__main__'):
     print("-I-: Self-Test: txdot_parse.py")
     print("-I-: should not see this from an import!")
+    test_dummies = 1
+    show_data_vis = 1
+    show_data_vis_model = 1
+
+    # get data
     (data,featdef) = preprocess_data(datafile, verbose=1)
     print("-I-: End of Pre-Processing")
     print("-I-: Brief data exploration")
 
-    print(data.head())
-    print(data.info())
-    if(1):
-      data.describe()
-      data.hist()
-      data.corr().plot() # TODO: seaborn
-      plt.show()
-    else:
-      print("-I-: Skipping...")
 
-    # alternative visualisation
-    datapt = data.pivot_table(values=['crash_death_count','crash_incapacitating_injury_count','crash_non-incapacitating_injury_count'], index=['speed_limit','crash_time'])
-    print(datapt)
+    if(show_data_vis):
+        print(data.head())
+        print(data.info())
+        if(1):
+          data.describe()
+          data.hist()
+          data.corr().plot() # TODO: seaborn
+          plt.show()
+        else:
+          print("-I-: Skipping...")
+
+    if(test_dummies):
+        # list of vars which become dummie'd
+        dummies_needed_list = list(featdef[featdef.dummies == 1].index)
+
+        # dummies
+        # http://stackoverflow.com/a/36285489 - use of columns
+        data_dummies = pd.get_dummies(data, columns=dummies_needed_list)
+        # no longer need to convert headers, already done in process_data_punctuation
+        pp.pprint(list(data_dummies))
+
+    if(show_data_vis_model):
+        # alternative visualisation
+        datapt = data.pivot_table(values=['crash_death_count','crash_incapacitating_injury_count','crash_non-incapacitating_injury_count'], index=['speed_limit','crash_time'])
+        print(datapt)
 
 
-    # inspect features with high covariance
-    pairplot_bin_var_list = list(featdef[featdef['pairplot']].index)
-    if(0):
-        sns.pairplot(data, vars=pairplot_var_list)
-        plt.show()
-
-    # list of vars which become dummie'd
-    dummies_needed_list = list(featdef[featdef.dummies == 1].index)
-
-    # dummies
-    # http://stackoverflow.com/a/36285489 - use of columns
-    data_dummies = pd.get_dummies(data, columns=dummies_needed_list)
-    # no longer need to convert headers, already done in process_data_punctuation
-    pp.pprint(list(data_dummies))
+        # inspect features with high covariance
+        pairplot_bin_var_list = list(featdef[featdef['pairplot']].index)
+        if(0):
+            sns.pairplot(data, vars=pairplot_var_list)
+            plt.show()
 
     print("-I-: End of File")
 
