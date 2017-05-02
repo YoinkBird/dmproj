@@ -1,6 +1,3 @@
-# helper functions
-from feature_definitions import *
-from txdot_parse import *
 
 # don't need most of these imports
 from sklearn.ensemble import RandomForestClassifier
@@ -83,102 +80,9 @@ def time_round30min(pd_ts_time):
         time2 = int(time_str)
     return time2
 
-'''
-approach:
-    0. work with pre-processed data (txdot_parse.preprocess_data)
-    1. identify all entries for intersections (street_name, intersecting_street_name) with no speed_limit
-        => data2
-    2. get all available data for these intersections
-        => df3
-    3. 
-'''
-'''
-profiling:
-    IPython CPU timings (estimated):
-      User   :      23.98 s.
-      System :       0.03 s.
-    Wall time:      24.99 s.
-'''
-# assume already processed
-def impute_mph(data, verbose=0):
-    verbose3 = 0
-    if(verbose):
-        print("-I-: using verbosity %d" % (verbose))
-    colgrps = {
-        # relevant entries for intersections
-        'intersection' : ['street_name','intersecting_street_name'],
-        'inter_mph' : ['speed_limit','crash_year','street_name','intersecting_street_name'],
-        # speed limit changes over the years
-        'inter_mph_uniq' : ['speed_limit','crash_year','street_name','intersecting_street_name'],
-      }
-    # impute missing speed limits
-
-    if(verbose):
-        print("total missing speed limit data:\n %s" % (data[~(data['speed_limit']).isnull()].shape[0]))
-    # df of all intersections and relvant data - keep only attributes which identify unique intersections and speed limits
-    df_inter = data[(~ data.intersecting_street_name.isnull())][colgrps['inter_mph_uniq']]
-    num_inter = df_inter.shape[0]
-    if(verbose):
-        print("total intersections:\nin : %s\nout: %s" % (data.shape[0], df_inter.shape[0]))
-    df_inter.drop_duplicates(subset=colgrps['inter_mph_uniq'], inplace=True)
-    if(verbose):
-        print("deduped:\nout: %s" % (df_inter.shape[0]))
-
-    # df of intersections without speed limits, to be used as an "index" to examine each intersection
-    df_inter_nomph = df_inter[(df_inter.speed_limit.isnull())][colgrps['intersection']].drop_duplicates()
-    if(verbose):
-        print("intersections without speed_limit:\nout: %s" % (df_inter_nomph.shape[0]))
-    df_inter_nomph.reset_index(drop=True, inplace=True)
-
-    # TODO: include crash id
-    # stub: data[(data.street_name == ser['street_name']) & (data.intersecting_street_name == ser['intersecting_street_name'])][colgrps['inter_mph']]
-    # loop through list of intersections with a missing entry for speed_limit
-    # get all entries for these intersections
-    # impute
-    # TODO: is this a case for a pivot_table ?
-    for i,ser in df_inter_nomph.iterrows():
-      if(verbose > 1):  #verbose>=2
-          print("%d / %d ..." % (i, df_inter_nomph.shape[0]))
-      #if (i != 3): continue # skip first 2, they are confirmed boring
-      if(verbose3):
-          print("%s | %s | %s" % (i, ser.street_name, ser.intersecting_street_name))
-      #print(data[(data['street_name'] == ser['street_name'])]) 
-      # sometimes the updates to 'dftmp' happen to 'data', something about slices vs copies, blah
-      # A value is trying to be set on a copy of a slice from a DataFrame
-      # See the caveats in the documentation: http://pandas.pydata.org/pandas-docs/stable/indexing.html#indexing-view-versus-copy
-      dftmp = data[(data['street_name'] == ser['street_name']) & (data['intersecting_street_name'] == ser['intersecting_street_name'])]
-      if(verbose3):
-          print("before:")
-          print(dftmp['speed_limit'].unique())
-          print(dftmp[colgrps['inter_mph']])
-      # sequence: fill back (misses a missing "last" entry), then forward (in order to get the missing "last" entry
-      # backwards fill - BIAS towards future speed limits (often higher!)
-      dftmp['speed_limit'].fillna(method='bfill',inplace=True)
-      # forwards fill - BIAS towards past speed limits (often lower!)
-      dftmp['speed_limit'].fillna(method='ffill',inplace=True)
-      if(verbose3):
-          print("after:")
-          print(dftmp[colgrps['inter_mph']])
-      # write
-      for jq in dftmp.index:
-        if(verbose3):
-            print("index %d" % jq)
-            print(data.ix[jq].speed_limit)
-        tmplim = dftmp.ix[jq].speed_limit
-        if(np.isnan(data.ix[jq].speed_limit)): # | (data.ix[jq].speed_limit == -1) ):
-            if(not np.isnan(tmplim) ):
-                data.set_value(jq,'speed_limit',dftmp.ix[jq].speed_limit)
-        if(verbose3):
-            print(data.ix[jq].speed_limit)
-      #if (i == 6): break # quit after 6 loops
-    if(verbose):
-        print("total new missing speed limit data:\n %s" % (data[data['speed_limit'].isnull()].shape[0]))
-    return data
-
 
 if(__name__ == '__main__'):
-    test_impute_mph = 1
-    test_timeconversion = 0
+    test_timeconversion = 1
     # testing - visual inspection
     if(test_timeconversion):
         print("verify correct operation of time_base10")
@@ -210,16 +114,3 @@ if(__name__ == '__main__'):
             if(int(testtimes2[i].replace(':','')) == rettime):
                 status = "PASS"
             print("%s: %6s: %s == %s ?" % (status, testtime , testtimes2[i] , rettime))
-    if(test_impute_mph):
-        # import the "crash" data
-        datafile = "../data/txdot_2010_2017.csv"
-        (data,featdef) = preprocess_data(datafile, verbose=0)
-        totalmissing   = data[data['speed_limit'].isnull()].shape[0]
-        missingpercent = totalmissing / data.shape[0]
-        print("pre : total missing speed limit data:\n %s (%s of 1)" % (totalmissing, missingpercent))
-        print(data.speed_limit.unique())
-        data = impute_mph(data, verbose=0)
-        totalmissing   = data[data['speed_limit'].isnull()].shape[0]
-        missingpercent = totalmissing / data.shape[0]
-        print("post: total missing speed limit data:\n %s (%s of 1)" % (totalmissing, missingpercent))
-        print(data.speed_limit.unique())
