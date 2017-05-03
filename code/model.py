@@ -173,3 +173,9 @@ print("-I-: End of File")
 
 # further reading - Random Forests
 # http://www.stat.berkeley.edu/~breiman/RandomForests/cc_home.htm
+
+# xgboost on ubuntu
+# manually link
+#   https://askubuntu.com/a/764572
+# conda install libcc
+# https://github.com/dmlc/xgboost/issues/1043
